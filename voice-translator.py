@@ -199,7 +199,8 @@ class UI_Action:
             self.qt.jaTextEdit_2.setFont(font)
 
     def button_font_size_down(self):
-        self.font_size -= 2
+        if self.font_size > 3:
+            self.font_size -= 2
         self.action_font_size_setter()
 
     def button_record(self):
