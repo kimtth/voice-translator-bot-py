@@ -9,12 +9,15 @@
 ################################################################################
 
 import os
+import time
+
 from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
     QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
 from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
     QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
     QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
+import api.speech_api as api
 
 
 class Ui_MainWindow(object):
@@ -69,6 +72,9 @@ class Ui_MainWindow(object):
         icon1 = QIcon()
         # added by me
         abs_path = os.path.abspath("./design/mic_icon.png")
+        self.recordButton.setCheckable(True)
+        self.recordButton.setStyleSheet("QPushButton:checked {color: white; background-color: green;}")
+        # added by me
         icon1.addFile(abs_path, QSize(), QIcon.Normal, QIcon.Off)
         self.recordButton.setIcon(icon1)
         self.fontUpButton = QPushButton(self.centralwidget)
@@ -119,7 +125,7 @@ class UI_Action:
         self.font_size = 8
         self.current_tab_index = 0
         self.current_tab_widget = object
-        self.test_data_tab_one()
+        # self.test_data_tab_one()
         self.action_tab_change()
 
         self.action_record_button()
@@ -141,7 +147,6 @@ class UI_Action:
         self.qt.jaTextEdit_2.setPlainText(jp_file.read())
 
     def action_tab_change(self):
-        # self.qt.tabWidget.blockSignals(True)  # just for not showing the initial message
         self.qt.tabWidget.currentChanged.connect(lambda: self.tab_change())
 
     def action_font_up_button(self):
@@ -166,9 +171,9 @@ class UI_Action:
         self.current_tab_widget = current_widget
 
         if current_index == 0:
-            self.test_data_tab_one()
+            pass # self.test_data_tab_one()
         elif current_index == 1:
-            self.test_data_tab_two()
+            pass # self.test_data_tab_two()
 
         self.action_font_size_setter()
 
@@ -180,6 +185,11 @@ class UI_Action:
 
     def button_font_size_up(self):
         self.font_size += 2
+        self.action_font_size_setter()
+
+    def button_font_size_down(self):
+        if self.font_size > 3:
+            self.font_size -= 2
         self.action_font_size_setter()
 
     def action_font_size_setter(self):
@@ -198,13 +208,32 @@ class UI_Action:
             font.setPointSize(self.font_size)
             self.qt.jaTextEdit_2.setFont(font)
 
-    def button_font_size_down(self):
-        if self.font_size > 3:
-            self.font_size -= 2
-        self.action_font_size_setter()
-
     def button_record(self):
-        QMessageBox.information(self.qt.centralwidget, "Information", "Being created...")
+        if self.qt.recordButton.isChecked():
+            self.call_speech_sdk()
+        else:
+            self.set_default_checked()
+
+    def set_default_checked(self):
+        self.qt.recordButton.setChecked(False)
+
+    def call_speech_sdk(self):
+        if self.qt.recordButton.isChecked():
+            result, info = api.speech_recognize_once_with_auto_language_detection_from_mic\
+                (ui_callback = self.set_default_checked)
+            timestamp = time.strftime("%H:%M:%S")
+            str_separator = ': '
+
+            if str(info).strip() == 'ja-JP':
+                self.qt.tabWidget.setCurrentIndex(1)
+                self.qt.jaTextEdit_2.appendPlainText(timestamp + str_separator + result)
+                translate_result = api.translation_once_from_text(result, info)
+                self.qt.enTextEdit_2.appendPlainText(timestamp + str_separator + translate_result)
+            else:
+                self.qt.tabWidget.setCurrentIndex(0)
+                self.qt.enTextEdit.appendPlainText(timestamp + str_separator + result)
+                translate_result = api.translation_once_from_text(result, info)
+                self.qt.jaTextEdit.appendPlainText(timestamp + str_separator + translate_result)
 
 
 if __name__ == "__main__":
