@@ -67,13 +67,10 @@ def speech_recognize_generator():
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
                                                    auto_detect_source_language_config=auto_detect_source_language_config)
 
-    # https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-to-text-basics?tabs=script&pivots=programming-language-python
-
     return speech_recognizer
 
 
 def speech_recognize_continual_with_auto_language_detection_from_mic(speech_recognizer, ui_payload, ui_callback):
-    """performs continuous speech recognition with input from an audio file"""
     # Connect callbacks to the events fired by the speech recognizer
     speech_recognizer.recognized.connect(lambda evt: yield_string_to_gui(ui_payload, evt.result))
     speech_recognizer.session_stopped.connect(ui_callback)
@@ -84,9 +81,14 @@ def speech_recognize_continual_with_auto_language_detection_from_mic(speech_reco
 
 
 def yield_string_to_gui(ui_payload, result):
-    print(result.text)
+    text = result.text
     auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
-    print(auto_detect_source_language_result.language)
+    lang = auto_detect_source_language_result.language
+    print('{}==>{}'.format(text, lang))
+    if str(lang).strip() == 'ja-JP':
+        ui_payload.set_tab_ja_en(text, lang)
+    else:
+        ui_payload.set_tab_en_ja(text, lang)
 
 
 def translation_once_from_text(source_text, source_lang):
@@ -121,7 +123,7 @@ def translation_once_from_text(source_text, source_lang):
     try:
         request = requests.post(constructed_url, headers=headers, json=body)
         response = request.json()
-        print(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
+        # print(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
 
         return result_from_translate_response(response)
     except requests.exceptions.RequestException as e:
