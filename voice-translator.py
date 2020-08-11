@@ -12,10 +12,10 @@ import os
 import time
 
 from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
+                            QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
 from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+                           QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
+                           QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
 import api.speech_api as api
 
@@ -70,13 +70,19 @@ class Ui_MainWindow(object):
         self.recordButton.setObjectName(u"recordButton")
         self.recordButton.setGeometry(QRect(200, 520, 75, 23))
         icon1 = QIcon()
-        # added by me
+        # added by me --start
+        self.recordContinualButton = QPushButton(self.centralwidget)
+        self.recordContinualButton.setObjectName(u"recordButton")
+        self.recordContinualButton.setGeometry(QRect(120, 520, 75, 23))
         abs_path = os.path.abspath("./design/mic_icon.png")
         self.recordButton.setCheckable(True)
         self.recordButton.setStyleSheet("QPushButton:checked {color: white; background-color: green;}")
-        # added by me
+        self.recordContinualButton.setCheckable(True)
+        self.recordContinualButton.setStyleSheet("QPushButton:checked {color: white; background-color: green;}")
         icon1.addFile(abs_path, QSize(), QIcon.Normal, QIcon.Off)
         self.recordButton.setIcon(icon1)
+        # added by me --end
+        self.recordContinualButton.setIcon(icon1)
         self.fontUpButton = QPushButton(self.centralwidget)
         self.fontUpButton.setObjectName(u"fontUpButton")
         self.fontUpButton.setGeometry(QRect(0, 520, 21, 23))
@@ -103,21 +109,25 @@ class Ui_MainWindow(object):
 
         self.tabWidget.setCurrentIndex(0)
 
-
         QMetaObject.connectSlotsByName(MainWindow)
+
     # setupUi
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Voice Translator", None))
         self.actionSave.setText(QCoreApplication.translate("MainWindow", u"Save", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.EnJaTab), QCoreApplication.translate("MainWindow", u"English \u2192 \u65e5\u672c\u8a9e", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.JaEnTab), QCoreApplication.translate("MainWindow", u"\u65e5\u672c\u8a9e \u2192 English", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.EnJaTab),
+                                  QCoreApplication.translate("MainWindow", u"English \u2192 \u65e5\u672c\u8a9e", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.JaEnTab),
+                                  QCoreApplication.translate("MainWindow", u"\u65e5\u672c\u8a9e \u2192 English", None))
         self.recordButton.setText(QCoreApplication.translate("MainWindow", u"Record", None))
+        self.recordContinualButton.setText(QCoreApplication.translate("MainWindow", u"Non-Stop", None))
         self.fontUpButton.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.fontDownButton.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
     # retranslateUi
+
 
 class UI_Action:
     def __init__(self, qt_ui):
@@ -125,10 +135,12 @@ class UI_Action:
         self.font_size = 8
         self.current_tab_index = 0
         self.current_tab_widget = object
+        self.speech_recognizer = object
+        self.payload = PlainTextPayLoad(self.qt)
         # self.test_data_tab_one()
         self.action_tab_change()
-
         self.action_record_button()
+        self.action_continual_record_button()
         self.action_font_up_button()
         self.action_font_down_button()
         self.action_menu_save()
@@ -155,6 +167,9 @@ class UI_Action:
     def action_font_down_button(self):
         self.qt.fontDownButton.clicked.connect(lambda: self.button_font_size_down())
 
+    def action_continual_record_button(self):
+        self.qt.recordContinualButton.clicked.connect(lambda: self.button_continual_record())
+
     def action_record_button(self):
         self.qt.recordButton.clicked.connect(lambda: self.button_record())
 
@@ -171,9 +186,9 @@ class UI_Action:
         self.current_tab_widget = current_widget
 
         if current_index == 0:
-            pass # self.test_data_tab_one()
+            pass  # self.test_data_tab_one()
         elif current_index == 1:
-            pass # self.test_data_tab_two()
+            pass  # self.test_data_tab_two()
 
         self.action_font_size_setter()
 
@@ -181,7 +196,35 @@ class UI_Action:
         QCoreApplication.quit()
 
     def menu_save(self):
-        QMessageBox.information(self.qt.centralwidget, "Information", "Being created...")
+        # QMessageBox.information(self.qt.centralwidget, "Information", "Being created...")
+        import json
+        tabData = {}
+        textData_enJa = {}
+        textData_enJa['en'] = self.qt.enTextEdit.toPlainText()
+        textData_enJa['ja'] = self.qt.jaTextEdit.toPlainText()
+        tabData['EnJaTab'] = textData_enJa
+
+        textData_jaEn = {}
+        textData_jaEn['en'] = self.qt.enTextEdit_2.toPlainText()
+        textData_jaEn['ja'] = self.qt.jaTextEdit_2.toPlainText()
+        tabData['JaEnTab'] = textData_jaEn
+        json_data = json.dumps(tabData, sort_keys=True, indent=4)
+
+        self.action_save_file(json_data)
+
+    def action_save_file(self, json_data):
+        file_name = QFileDialog.getSaveFileName(self.qt.centralwidget, caption='Save File', filter="JSON (*.json)",
+                                                options=QFileDialog.DontUseNativeDialog)
+
+        if file_name[0].endswith(".json"):
+            file_path = file_name[0]
+        else:
+            file_path = file_name[0] + ".json"
+
+        if file_path:
+            with open(file_path, 'w', encoding='utf8') as file:
+                file.write(json_data)
+                file.close()
 
     def button_font_size_up(self):
         self.font_size += 2
@@ -210,31 +253,75 @@ class UI_Action:
 
     def button_record(self):
         if self.qt.recordButton.isChecked():
-            self.call_speech_sdk()
+            self.call_speech_once_sdk()
         else:
-            self.set_default_checked()
+            self.set_record_default_checked()
 
-    def set_default_checked(self):
+    def button_continual_record(self):
+        if self.qt.recordContinualButton.isChecked():
+            self.call_speech_continual_sdk()
+        else:
+            self.set_record_continual_default_checked()
+
+    def set_record_continual_default_checked(self):
+        self.qt.recordContinualButton.setChecked(False)
+
+    def set_record_default_checked(self):
         self.qt.recordButton.setChecked(False)
 
-    def call_speech_sdk(self):
+    def call_speech_once_sdk(self):
         if self.qt.recordButton.isChecked():
-            result, info = api.speech_recognize_once_with_auto_language_detection_from_mic\
-                (ui_callback = self.set_default_checked)
-            timestamp = time.strftime("%H:%M:%S")
-            str_separator = ': '
+            result, info = api.speech_recognize_once_with_auto_language_detection_from_mic \
+                (ui_callback=self.set_record_default_checked)
+            self.action_set_plaintext(result, info)
 
-            if str(info).strip() == 'ja-JP':
-                self.qt.tabWidget.setCurrentIndex(1)
-                self.qt.jaTextEdit_2.appendPlainText(timestamp + str_separator + result)
-                translate_result = api.translation_once_from_text(result, info)
-                self.qt.enTextEdit_2.appendPlainText(timestamp + str_separator + translate_result)
-            else:
-                self.qt.tabWidget.setCurrentIndex(0)
-                self.qt.enTextEdit.appendPlainText(timestamp + str_separator + result)
-                translate_result = api.translation_once_from_text(result, info)
-                self.qt.jaTextEdit.appendPlainText(timestamp + str_separator + translate_result)
+    def action_set_plaintext(self, result, info):
+        timestamp = time.strftime("%H:%M:%S")
+        str_separator = ': '
+        if str(info).strip() == 'ja-JP':
+            self.qt.tabWidget.setCurrentIndex(1)
+            self.qt.jaTextEdit_2.appendPlainText(timestamp + str_separator + result)
+            translate_result = api.translation_once_from_text(result, info)
+            self.qt.enTextEdit_2.appendPlainText(timestamp + str_separator + translate_result)
+        else:
+            self.qt.tabWidget.setCurrentIndex(0)
+            self.qt.enTextEdit.appendPlainText(timestamp + str_separator + result)
+            translate_result = api.translation_once_from_text(result, info)
+            self.qt.jaTextEdit.appendPlainText(timestamp + str_separator + translate_result)
 
+    def call_speech_continual_sdk(self):
+        if self.qt.recordContinualButton.isChecked():
+            print('stop--aaa--recognition')
+            self.speech_recognizer = api.speech_recognize_generator()
+            api.speech_recognize_continual_with_auto_language_detection_from_mic\
+                (self.speech_recognizer, ui_payload=self.payload, ui_callback=self.set_record_continual_default_checked)
+        else:
+            print('stop--recognition')
+            self.speech_recognizer.stop_continuous_recognition()
+
+
+class PlainTextPayLoad:
+    def __init__(self, qt):
+        self.tabWidget = qt.tabWidget
+        self.tab_enJa_en = qt.enTextEdit
+        self.tab_enJa_ja = qt.jaTextEdit
+        self.str_separator = ': '
+        self.tab_jaEn_en = qt.enTextEdit_2
+        self.tab_jaEn_ja = qt.jaTextEdit_2
+
+    def set_tab_enJa(self, result, info):
+        timestamp = time.strftime("%H:%M:%S")
+        self.tabWidget.setCurrentIndex(1)
+        self.tab_enJa_en.appendPlainText(timestamp + self.str_separator + result)
+        translate_result = api.translation_once_from_text(result, info)
+        self.tab_enJa_ja.appendPlainText(timestamp + self.str_separator + translate_result)
+
+    def set_tab_jaEn(self, result, info):
+        timestamp = time.strftime("%H:%M:%S")
+        self.tabWidget.setCurrentIndex(0)
+        self.tab_jaEn_ja.appendPlainText(timestamp + self.str_separator + result)
+        translate_result = api.translation_once_from_text(result, info)
+        self.tab_jaEn_en.appendPlainText(timestamp + self.str_separator + translate_result)
 
 if __name__ == "__main__":
     app = QApplication()
