@@ -29,15 +29,8 @@ speech_key, service_region = key.Const.SPEECH_SUBSCRIPTION_KEY, key.Const.SPEECH
 
 
 # https://docs.microsoft.com/mt-mt/azure/cognitive-services/speech-service/language-support#speech-to-text
-def speech_recognize_once_with_auto_language_detection_from_mic(ui_callback):
+def speech_recognize_once_with_auto_language_detection_from_mic(speech_recognizer, ui_callback):
     """performs one-shot speech recognition from the default microphone with auto language detection"""
-    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
-
-    # create the auto detection language configuration with the potential source language candidates
-    auto_detect_source_language_config = \
-        speechsdk.languageconfig.AutoDetectSourceLanguageConfig(languages=["ja-JP", "en-US", "en-IN"])
-    speech_recognizer = speechsdk.SpeechRecognizer(
-        speech_config=speech_config, auto_detect_source_language_config=auto_detect_source_language_config)
     result = speech_recognizer.recognize_once()
 
     # add kim
@@ -52,40 +45,6 @@ def speech_recognize_once_with_auto_language_detection_from_mic(ui_callback):
         print("Error Log: ", result.reason)
         return result.reason, ""
 
-'''
-def speech_recognize_generator():
-    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
-    auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(
-        languages=["ja-JP", "en-US", "en-IN"])
-
-    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
-                                                   auto_detect_source_language_config=auto_detect_source_language_config)
-
-    return speech_recognizer
-
-
-def speech_recognize_continual_with_auto_language_detection_from_mic(speech_recognizer, ui_payload, ui_callback):
-    # Connect callbacks to the events fired by the speech recognizer
-    speech_recognizer.recognized.connect(lambda evt: yield_string_to_gui(ui_payload, evt.result))
-    speech_recognizer.session_stopped.connect(ui_callback)
-    speech_recognizer.canceled.connect(ui_callback)
-
-    # Start continuous speech recognition
-    speech_recognizer.start_continuous_recognition()
-
-
-def yield_string_to_gui(ui_payload, result):
-    text = result.text
-    auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
-    lang = auto_detect_source_language_result.language
-    print('{}==>{}'.format(text, lang))
-
-    # PyQT slot and signal
-    if str(lang).strip() == 'ja-JP':
-        ui_payload.set_tab_ja_en(text, lang)
-    else:
-        ui_payload.set_tab_en_ja(text, lang)
-'''
 
 def translation_once_from_text(source_text, source_lang):
     subscription_key = key.Const.TRANSLATOR_TEXT_SUBSCRIPTION_KEY

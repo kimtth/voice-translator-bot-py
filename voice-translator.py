@@ -201,7 +201,6 @@ class UI_Action:
 
     def menu_save(self):
         # QMessageBox.information(self.qt.centralwidget, "Information", "Being created...")
-        import json
         tabData = {}
         textData_enJa = {}
         textData_enJa['en'] = self.qt.enTextEdit.toPlainText()
@@ -212,23 +211,21 @@ class UI_Action:
         textData_jaEn['en'] = self.qt.enTextEdit_2.toPlainText()
         textData_jaEn['ja'] = self.qt.jaTextEdit_2.toPlainText()
         tabData['JaEnTab'] = textData_jaEn
-        json_data = json.dumps(tabData, sort_keys=True, indent=4)
 
-        self.action_save_file(json_data)
+        self.action_save_file(tabData)
 
-    def action_save_file(self, json_data):
-        file_name = QFileDialog.getSaveFileName(self.qt.centralwidget, caption='Save File', filter="JSON (*.json)",
+    def action_save_file(self, tab_data):
+        file_name = QFileDialog.getSaveFileName(self.qt.centralwidget, caption='Save File', filter="Text (*.txt)",
                                                 options=QFileDialog.DontUseNativeDialog)
 
-        if file_name[0].endswith(".json"):
+        if file_name[0].endswith(".txt"):
             file_path = file_name[0]
         else:
-            file_path = file_name[0] + ".json"
+            file_path = file_name[0] + ".txt"
 
         if file_path:
-            with open(file_path, 'w', encoding='utf8') as file:
-                file.write(json_data)
-                file.close()
+            with open(file_path, 'w', encoding='utf8') as f:
+                print(tab_data, file=f)
 
     def button_font_size_up(self):
         self.font_size += 2
@@ -278,7 +275,7 @@ class UI_Action:
     def call_speech_once_sdk(self):
         if self.qt.recordButton.isChecked():
             text, lang = api.speech_recognize_once_with_auto_language_detection_from_mic \
-                (ui_callback=self.set_record_default_checked)
+                (speech_recognizer=self.worker.speech_recognize_generator(), ui_callback=self.set_record_default_checked)
             if lang:
                 self.action_set_plaintext(text, lang)
 
@@ -292,7 +289,7 @@ class UI_Action:
         if self.qt.recordContinualButton.isChecked():
             self.speech_recognizer = self.worker.speech_recognize_generator()
             self.worker.speech_recognize_continual_with_auto_language_detection_from_mic\
-                (self.speech_recognizer, ui_payload=self.payload, ui_callback=self.set_record_continual_default_checked)
+                (speech_recognizer=self.speech_recognizer, ui_callback=self.set_record_continual_default_checked)
 
 
 class PlainTextPayLoad:

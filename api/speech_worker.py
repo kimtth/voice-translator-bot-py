@@ -22,33 +22,32 @@ except ImportError:
 
 class SpeechContinuousWorker(QtCore.QObject):
     text_result_lang = QtCore.Signal(object)
-
     speech_key, service_region = key.Const.SPEECH_SUBSCRIPTION_KEY, key.Const.SPEECH_SERVICE_REGION
 
     def speech_recognize_generator(self):
         speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.service_region)
         auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(
-            languages=["ja-JP", "en-US", "en-IN"])
+            languages=["ja-JP", "en-US", "en-IN", "en-GB"])
 
         speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
                                                        auto_detect_source_language_config=auto_detect_source_language_config)
 
         return speech_recognizer
 
-    def speech_recognize_continual_with_auto_language_detection_from_mic(self, speech_recognizer, ui_payload, ui_callback):
+    def speech_recognize_continual_with_auto_language_detection_from_mic(self, speech_recognizer, ui_callback):
         # Connect callbacks to the events fired by the speech recognizer
-        speech_recognizer.recognized.connect(lambda evt: self.yield_string_to_gui(ui_payload, evt.result))
+        speech_recognizer.recognized.connect(lambda evt: self.yield_string_to_gui(evt.result))
         speech_recognizer.session_stopped.connect(ui_callback)
         speech_recognizer.canceled.connect(ui_callback)
 
         # Start continuous speech recognition
         speech_recognizer.start_continuous_recognition()
 
-    def yield_string_to_gui(self, ui_payload, result):
+    def yield_string_to_gui(self, result):
         text = result.text
         auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
         lang = auto_detect_source_language_result.language
-        print('{}==>{}'.format(text, lang))
+        print('{}--{}'.format(text, lang))
 
         # PyQT slot and signal
         if str(lang).strip() == 'ja-JP':
