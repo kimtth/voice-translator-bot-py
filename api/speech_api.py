@@ -7,8 +7,6 @@
 Speech recognition samples for the Microsoft Cognitive Services Speech SDK
 """
 
-import time
-import wave
 import api.constants as key
 import os, requests, uuid, json
 
@@ -50,15 +48,11 @@ def speech_recognize_once_with_auto_language_detection_from_mic(ui_callback):
         auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
         print("Recognized: {} in language {}".format(result.text, auto_detect_source_language_result.language))
         return result.text, auto_detect_source_language_result.language
-    elif result.reason == speechsdk.ResultReason.NoMatch:
-        print("No speech could be recognized")
-        return "No speech could be recognized", ""
-    elif result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = result.cancellation_details
-        print("Speech Recognition canceled: {}".format(cancellation_details.reason))
-        return "Speech Recognition canceled", cancellation_details.reason
+    else:
+        print("Error Log: ", result.reason)
+        return result.reason, ""
 
-
+'''
 def speech_recognize_generator():
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
     auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(
@@ -85,14 +79,15 @@ def yield_string_to_gui(ui_payload, result):
     auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
     lang = auto_detect_source_language_result.language
     print('{}==>{}'.format(text, lang))
+
+    # PyQT slot and signal
     if str(lang).strip() == 'ja-JP':
         ui_payload.set_tab_ja_en(text, lang)
     else:
         ui_payload.set_tab_en_ja(text, lang)
-
+'''
 
 def translation_once_from_text(source_text, source_lang):
-
     subscription_key = key.Const.TRANSLATOR_TEXT_SUBSCRIPTION_KEY
     if not subscription_key:
         raise Exception('Please set/export the environment variable: {}'.format(subscription_key))
@@ -133,9 +128,12 @@ def translation_once_from_text(source_text, source_lang):
 
 
 def result_from_translate_response(response):
-    response_dict = response[0]
-    if 'translations' in response_dict:
-        response_results = response_dict['translations']
-        return response_results[0]['text']
+    if len(response) > 0:
+        response_dict = response[0]
+        if 'translations' in response_dict:
+            response_results = response_dict['translations']
+            return response_results[0]['text']
+        else:
+            raise Exception("The response is incorrect.")
     else:
         raise Exception("The response is incorrect.")

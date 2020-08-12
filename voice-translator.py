@@ -12,7 +12,7 @@ import os
 import time
 
 from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-                            QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
+                            QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, Slot)
 from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
                            QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
                            QPixmap, QRadialGradient)
@@ -20,6 +20,7 @@ from PySide2.QtWidgets import *
 from azure.cognitiveservices.speech import SpeechRecognizer
 
 import api.speech_api as api
+from api.speech_worker import SpeechContinuousWorker
 
 
 class Ui_MainWindow(object):
@@ -138,7 +139,8 @@ class UI_Action:
         self.current_tab_index = 0
         self.current_tab_widget = object
         self.speech_recognizer = object
-        self.payload = PlainTextPayLoad(self.qt)
+        self.worker = SpeechContinuousWorker()
+        self.payload = PlainTextPayLoad(qt_ui, self.worker)
         # self.test_data_tab_one()
         self.action_tab_change()
         self.action_record_button()
@@ -148,7 +150,6 @@ class UI_Action:
         self.action_menu_save()
         self.action_menu_exit()
 
-    '''
     def test_data_tab_one(self):
         jp_file = open('./design/sample_jp.vot', 'r', encoding='utf-8')
         en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
@@ -160,7 +161,6 @@ class UI_Action:
         en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
         self.qt.enTextEdit_2.setPlainText(en_file.read())
         self.qt.jaTextEdit_2.setPlainText(jp_file.read())
-    '''
 
     def action_tab_change(self):
         self.qt.tabWidget.currentChanged.connect(lambda: self.tab_change())
@@ -190,9 +190,9 @@ class UI_Action:
         self.current_tab_widget = current_widget
 
         if current_index == 0:
-            pass  # self.test_data_tab_one()
+            pass #self.test_data_tab_one()
         elif current_index == 1:
-            pass  # self.test_data_tab_two()
+            pass #self.test_data_tab_two()
 
         self.action_font_size_setter()
 
@@ -277,9 +277,10 @@ class UI_Action:
 
     def call_speech_once_sdk(self):
         if self.qt.recordButton.isChecked():
-            result, info = api.speech_recognize_once_with_auto_language_detection_from_mic \
+            text, lang = api.speech_recognize_once_with_auto_language_detection_from_mic \
                 (ui_callback=self.set_record_default_checked)
-            self.action_set_plaintext(result, info)
+            if lang:
+                self.action_set_plaintext(text, lang)
 
     def action_set_plaintext(self, text, lang):
         if str(lang).strip() == 'ja-JP':
@@ -289,34 +290,52 @@ class UI_Action:
 
     def call_speech_continual_sdk(self):
         if self.qt.recordContinualButton.isChecked():
-            self.speech_recognizer = api.speech_recognize_generator()
-            api.speech_recognize_continual_with_auto_language_detection_from_mic\
+            self.speech_recognizer = self.worker.speech_recognize_generator()
+            self.worker.speech_recognize_continual_with_auto_language_detection_from_mic\
                 (self.speech_recognizer, ui_payload=self.payload, ui_callback=self.set_record_continual_default_checked)
 
 
 class PlainTextPayLoad:
-    def __init__(self, qt):
+    def __init__(self, qt, worker):
         self.tabWidget = qt.tabWidget
         self.tab_enJa_en = qt.enTextEdit
         self.tab_enJa_ja = qt.jaTextEdit
         self.str_separator = ': '
         self.tab_jaEn_en = qt.enTextEdit_2
         self.tab_jaEn_ja = qt.jaTextEdit_2
+        self.worker = worker
+        self.worker.text_result_lang.connect(self.set_tab_result)
+
+    @Slot(str)
+    def set_tab_result(self, result):
+        text = result['text']
+        lang = result['lang']
+
+        if lang == 'ja-JP':
+            self.set_tab_ja_en(text, lang)
+        else:
+            self.set_tab_en_ja(text, lang)
 
     def set_tab_en_ja(self, result, lang):
         timestamp = time.strftime("%H:%M:%S")
         self.tabWidget.setCurrentIndex(0)
+
         if result:
+            time.sleep(0.1)
             self.tab_enJa_en.appendPlainText(timestamp + self.str_separator + result)
             translate_result = api.translation_once_from_text(result, lang)
+            time.sleep(0.1)
             self.tab_enJa_ja.appendPlainText(timestamp + self.str_separator + translate_result)
 
     def set_tab_ja_en(self, result, lang):
         timestamp = time.strftime("%H:%M:%S")
         self.tabWidget.setCurrentIndex(1)
+
         if result:
+            time.sleep(0.1)
             self.tab_jaEn_ja.appendPlainText(timestamp + self.str_separator + result)
             translate_result = api.translation_once_from_text(result, lang)
+            time.sleep(0.1)
             self.tab_jaEn_en.appendPlainText(timestamp + self.str_separator + translate_result)
 
 
