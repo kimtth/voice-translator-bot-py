@@ -33,7 +33,7 @@ def speech_recognize_once_with_auto_language_detection_from_mic(speech_recognize
     """performs one-shot speech recognition from the default microphone with auto language detection"""
     result = speech_recognizer.recognize_once()
 
-    # add kim
+    # Turn to button as the inactive state.
     ui_callback()
 
     # Check the result
@@ -67,7 +67,7 @@ def translation_once_from_text(source_text, source_lang):
         'Ocp-Apim-Subscription-Key': subscription_key,
         'Ocp-Apim-Subscription-Region': key.Const.TRANSLATOR_TEXT_REGION_AKA_LOCATION,
         'Content-type': 'application/json',
-        # 'X-ClientTraceId': str(uuid.uuid4())
+        'X-ClientTraceId': str(uuid.uuid4())
     }
 
     body = [{

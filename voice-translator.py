@@ -142,6 +142,9 @@ class UI_Action:
         self.worker = SpeechContinuousWorker()
         self.payload = PlainTextPayLoad(qt_ui, self.worker)
         # self.test_data_tab_one()
+        self.action__init__()
+
+    def action__init__(self):
         self.action_tab_change()
         self.action_record_button()
         self.action_continual_record_button()
@@ -163,7 +166,7 @@ class UI_Action:
         self.qt.jaTextEdit_2.setPlainText(jp_file.read())
 
     def action_tab_change(self):
-        self.qt.tabWidget.currentChanged.connect(lambda: self.tab_change())
+        self.qt.tabWidget.currentChanged.connect(lambda: self.switch_lang_mode())
 
     def action_font_up_button(self):
         self.qt.fontUpButton.clicked.connect(lambda: self.button_font_size_up())
@@ -183,17 +186,11 @@ class UI_Action:
     def action_menu_exit(self):
         self.qt.actionExit.triggered.connect(lambda: self.menu_exit())
 
-    def tab_change(self):
+    def switch_lang_mode(self):
         current_index = self.qt.tabWidget.currentIndex()
         current_widget = self.qt.tabWidget.currentWidget()
         self.current_tab_index = current_index
         self.current_tab_widget = current_widget
-
-        if current_index == 0:
-            pass #self.test_data_tab_one()
-        elif current_index == 1:
-            pass #self.test_data_tab_two()
-
         self.action_font_size_setter()
 
     def menu_exit(self):
@@ -217,7 +214,6 @@ class UI_Action:
     def action_save_file(self, tab_data):
         file_name = QFileDialog.getSaveFileName(self.qt.centralwidget, caption='Save File', filter="Text (*.txt)",
                                                 options=QFileDialog.DontUseNativeDialog)
-
         if file_name[0].endswith(".txt"):
             file_path = file_name[0]
         else:
@@ -275,8 +271,8 @@ class UI_Action:
     def call_speech_once_sdk(self):
         if self.qt.recordButton.isChecked():
             text, lang = api.speech_recognize_once_with_auto_language_detection_from_mic \
-                (speech_recognizer=self.worker.speech_recognize_generator(), ui_callback=self.set_record_default_checked)
-            if lang:
+                (speech_recognizer=self.worker.speech_recognize_generator_auto_detect(), ui_callback=self.set_record_default_checked)
+            if text and lang:
                 self.action_set_plaintext(text, lang)
 
     def action_set_plaintext(self, text, lang):
@@ -287,9 +283,21 @@ class UI_Action:
 
     def call_speech_continual_sdk(self):
         if self.qt.recordContinualButton.isChecked():
-            self.speech_recognizer = self.worker.speech_recognize_generator()
-            self.worker.speech_recognize_continual_with_auto_language_detection_from_mic\
-                (speech_recognizer=self.speech_recognizer, ui_callback=self.set_record_continual_default_checked)
+            current_index = self.qt.tabWidget.currentIndex()
+            if current_index == 0:
+                if self.qt.recordContinualButton.isChecked():
+                    print('>english')
+                    self.speech_recognizer = self.worker.speech_recognize_generator_english_detect()
+                    self.worker.speech_recognize_continual_from_mic \
+                        (speech_recognizer=self.speech_recognizer,
+                         ui_callback=self.set_record_continual_default_checked)
+            elif current_index == 1:
+                if self.qt.recordContinualButton.isChecked():
+                    print('>japanese')
+                    self.speech_recognizer = self.worker.speech_recognize_generator_japanese_detect()
+                    self.worker.speech_recognize_continual_from_mic \
+                        (speech_recognizer=self.speech_recognizer,
+                         ui_callback=self.set_record_continual_default_checked)
 
 
 class PlainTextPayLoad:
@@ -303,7 +311,8 @@ class PlainTextPayLoad:
         self.worker = worker
         self.worker.text_result_lang.connect(self.set_tab_result)
 
-    @Slot(str)
+    # Signal Receiver - Slot
+    @Slot(object)
     def set_tab_result(self, result):
         text = result['text']
         lang = result['lang']
