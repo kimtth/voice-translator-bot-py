@@ -20,7 +20,17 @@ from PySide2.QtWidgets import *
 from azure.cognitiveservices.speech import SpeechRecognizer
 
 import api.speech_api as api
+import sys
 from api.speech_worker import SpeechContinuousWorker
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath("./design")
+
+    return os.path.join(base_path, relative_path)
 
 
 class Ui_MainWindow(object):
@@ -36,7 +46,7 @@ class Ui_MainWindow(object):
         MainWindow.setMaximumSize(QSize(275, 586))
         icon = QIcon()
         # added by me
-        abs_path = os.path.abspath("./design/translator-ico.png")
+        abs_path = resource_path("translator-ico.png")
         icon.addFile(abs_path, QSize(), QIcon.Normal, QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setDocumentMode(False)
@@ -77,7 +87,7 @@ class Ui_MainWindow(object):
         self.recordContinualButton = QPushButton(self.centralwidget)
         self.recordContinualButton.setObjectName(u"recordButton")
         self.recordContinualButton.setGeometry(QRect(120, 520, 75, 23))
-        abs_path = os.path.abspath("./design/mic_icon.png")
+        abs_path = resource_path("mic_icon.png")
         self.recordButton.setCheckable(True)
         self.recordButton.setStyleSheet("QPushButton:checked {color: white; background-color: green;}")
         self.recordContinualButton.setCheckable(True)
@@ -137,7 +147,7 @@ class UI_Action:
         self.qt = qt_ui
         self.font_size = 8
         self.current_tab_index = 0
-        self.current_tab_widget = object
+        # self.current_tab_widget = object
         self.speech_recognizer = object
         self.worker = SpeechContinuousWorker()
         self.payload = PlainTextPayLoad(qt_ui, self.worker)
@@ -153,20 +163,8 @@ class UI_Action:
         self.action_menu_save()
         self.action_menu_exit()
 
-    def test_data_tab_one(self):
-        jp_file = open('./design/sample_jp.vot', 'r', encoding='utf-8')
-        en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
-        self.qt.enTextEdit.setPlainText(en_file.read())
-        self.qt.jaTextEdit.setPlainText(jp_file.read())
-
-    def test_data_tab_two(self):
-        jp_file = open('./design/sample_jp.vot', 'r', encoding='utf-8')
-        en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
-        self.qt.enTextEdit_2.setPlainText(en_file.read())
-        self.qt.jaTextEdit_2.setPlainText(jp_file.read())
-
     def action_tab_change(self):
-        self.qt.tabWidget.currentChanged.connect(lambda: self.switch_lang_mode())
+        self.qt.tabWidget.currentChanged.connect(lambda: self.tab_switch_lang_mode())
 
     def action_font_up_button(self):
         self.qt.fontUpButton.clicked.connect(lambda: self.button_font_size_up())
@@ -186,11 +184,16 @@ class UI_Action:
     def action_menu_exit(self):
         self.qt.actionExit.triggered.connect(lambda: self.menu_exit())
 
-    def switch_lang_mode(self):
+    def tab_switch_lang_mode(self):
         current_index = self.qt.tabWidget.currentIndex()
-        current_widget = self.qt.tabWidget.currentWidget()
+        # current_widget = self.qt.tabWidget.currentWidget()
         self.current_tab_index = current_index
-        self.current_tab_widget = current_widget
+
+        if self.qt.recordContinualButton.isChecked():
+            self.set_record_continual_default_checked()
+            QMessageBox.information(self.qt.centralwidget, "Information", "Recording was terminated.")
+            # self.qt.recordContinualButton.click() # Trigger click programmatically
+
         self.action_font_size_setter()
 
     def menu_exit(self):
@@ -272,7 +275,7 @@ class UI_Action:
         if self.qt.recordButton.isChecked():
             text, lang = api.speech_recognize_once_with_auto_language_detection_from_mic \
                 (speech_recognizer=self.worker.speech_recognize_generator_auto_detect(), ui_callback=self.set_record_default_checked)
-            if text and lang:
+            if text:
                 self.action_set_plaintext(text, lang)
 
     def action_set_plaintext(self, text, lang):
@@ -286,14 +289,14 @@ class UI_Action:
             current_index = self.qt.tabWidget.currentIndex()
             if current_index == 0:
                 if self.qt.recordContinualButton.isChecked():
-                    print('>english')
+                    print('>--english mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_english_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,
                          ui_callback=self.set_record_continual_default_checked)
             elif current_index == 1:
                 if self.qt.recordContinualButton.isChecked():
-                    print('>japanese')
+                    print('>--japanese mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_japanese_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,

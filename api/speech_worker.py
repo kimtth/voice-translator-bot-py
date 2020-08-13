@@ -45,9 +45,14 @@ class SpeechContinuousWorker(QtCore.QObject):
     
     def speech_recognize_generator_japanese_detect(self):
         speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.service_region)
-        source_language_config = speechsdk.languageconfig.SourceLanguageConfig('ja-JP')
+        #source_language_config = speechsdk.languageconfig.SourceLanguageConfig('ja-JP')
+        #speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
+        #                                               source_language_config=source_language_config)
+
+        auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(
+            languages=['ja-JP'])
         speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
-                                                       source_language_config=source_language_config)
+                                                       auto_detect_source_language_config=auto_detect_source_language_config)
 
         return speech_recognizer
 
@@ -71,21 +76,17 @@ class SpeechContinuousWorker(QtCore.QObject):
         speech_recognizer.start_continuous_recognition()
 
     def yield_string_to_gui(self, result):
-        text = result.text
+        recognized_text = result.text
         auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
         lang = auto_detect_source_language_result.language
 
-        print('lang ', lang)
-        if not lang:
-            lang = 'ja-JP'
-
-        print('{}<-->{}'.format(text, lang))
+        print('Recognized: {} in language {}'.format(recognized_text, lang))
 
         # PyQT slot and signal
         if str(lang).strip() == 'ja-JP':
-            result = {'text': text, 'lang': lang}
+            result = {'text': recognized_text, 'lang': lang}
             self.text_result_lang.emit(result) # Emit Signal
         elif 'en' in str(lang):
-            result = {'text': text, 'lang': lang}
+            result = {'text': recognized_text, 'lang': lang}
             self.text_result_lang.emit(result)
 
