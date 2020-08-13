@@ -252,6 +252,12 @@ class UI_Action:
             self.qt.jaTextEdit_2.setFont(font)
 
     def button_record(self):
+        if self.qt.recordContinualButton.isChecked():
+            QMessageBox.information(self.qt.centralwidget, "Information", "Please turn-off the recording.")
+            self.set_record_default_checked()
+            self.set_record_continual_default_checked()
+            return
+
         if self.qt.recordButton.isChecked():
             self.call_speech_once_sdk()
         else:
@@ -289,14 +295,14 @@ class UI_Action:
             current_index = self.qt.tabWidget.currentIndex()
             if current_index == 0:
                 if self.qt.recordContinualButton.isChecked():
-                    print('>--english mode')
+                    print('english mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_english_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,
                          ui_callback=self.set_record_continual_default_checked)
             elif current_index == 1:
                 if self.qt.recordContinualButton.isChecked():
-                    print('>--japanese mode')
+                    print('japanese mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_japanese_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,

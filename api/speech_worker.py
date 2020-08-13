@@ -83,10 +83,8 @@ class SpeechContinuousWorker(QtCore.QObject):
         print('Recognized: {} in language {}'.format(recognized_text, lang))
 
         # PyQT slot and signal
-        if str(lang).strip() == 'ja-JP':
-            result = {'text': recognized_text, 'lang': lang}
-            self.text_result_lang.emit(result) # Emit Signal
-        elif 'en' in str(lang):
-            result = {'text': recognized_text, 'lang': lang}
-            self.text_result_lang.emit(result)
+        if recognized_text:
+            result = { 'text': recognized_text, 'lang': lang }
+            self.text_result_lang.emit(result)  # Emit Signal
+
 

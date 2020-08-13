@@ -43,7 +43,7 @@ def speech_recognize_once_with_auto_language_detection_from_mic(speech_recognize
         return result.text, auto_detect_source_language_result.language
     else:
         print("Error Log: ", result.reason)
-        return result.reason, ""
+        return str(result.reason), ""
 
 
 def translation_once_from_text(source_text, source_lang):
