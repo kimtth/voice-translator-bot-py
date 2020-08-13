@@ -1,0 +1,11 @@
+    def test_data_tab_one(self):
+        jp_file = open('./design/sample_jp.vot', 'r', encoding='utf-8')
+        en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
+        self.qt.enTextEdit.setPlainText(en_file.read())
+        self.qt.jaTextEdit.setPlainText(jp_file.read())
+
+    def test_data_tab_two(self):
+        jp_file = open('./design/sample_jp.vot', 'r', encoding='utf-8')
+        en_file = open('./design/sample_en.vot', 'r', encoding='utf-8')
+        self.qt.enTextEdit_2.setPlainText(en_file.read())
+        self.qt.jaTextEdit_2.setPlainText(jp_file.read())
