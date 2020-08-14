@@ -8,20 +8,21 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import logging
 import os
+import sys
 import time
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-                            QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, Slot)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-                           QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-                           QPixmap, QRadialGradient)
+from PySide2.QtCore import (QCoreApplication, QMetaObject,
+                            QRect, QSize, Slot)
+from PySide2.QtGui import (QIcon)
 from PySide2.QtWidgets import *
-from azure.cognitiveservices.speech import SpeechRecognizer
 
 import api.speech_api as api
-import sys
 from api.speech_worker import SpeechContinuousWorker
+from speech_logger import set_logging
+
+logger = logging.getLogger('voice_translator')
 
 
 def resource_path(relative_path):
@@ -190,8 +191,8 @@ class UI_Action:
         self.current_tab_index = current_index
 
         if self.qt.recordContinualButton.isChecked():
-            self.set_record_continual_default_checked()
             QMessageBox.information(self.qt.centralwidget, "Information", "Recording was terminated.")
+            self.set_record_continual_default_checked()
             # self.qt.recordContinualButton.click() # Trigger click programmatically
 
         self.action_font_size_setter()
@@ -200,19 +201,23 @@ class UI_Action:
         QCoreApplication.quit()
 
     def menu_save(self):
-        # QMessageBox.information(self.qt.centralwidget, "Information", "Being created...")
-        tabData = {}
-        textData_enJa = {}
-        textData_enJa['en'] = self.qt.enTextEdit.toPlainText()
-        textData_enJa['ja'] = self.qt.jaTextEdit.toPlainText()
-        tabData['EnJaTab'] = textData_enJa
+        title = '[English -> 日本語] '
+        title += time.strftime("%Y/%m/%d %H:%M")
+        textData_enJa_en = self.qt.enTextEdit.toPlainText()
+        text_data = '\n'.join([title, textData_enJa_en])
+        textData_enJa_ja = self.qt.jaTextEdit.toPlainText()
+        text_data = '\n'.join([text_data, textData_enJa_ja])
 
-        textData_jaEn = {}
-        textData_jaEn['en'] = self.qt.enTextEdit_2.toPlainText()
-        textData_jaEn['ja'] = self.qt.jaTextEdit_2.toPlainText()
-        tabData['JaEnTab'] = textData_jaEn
+        if self.qt.enTextEdit_2.toPlainText():
+            title = '[日本語 -> English] '
+            title += time.strftime("%Y/%m/%d %H:%M")
+            text_data = '\n'.join([text_data, title])
+            textData_jaEn_en = self.qt.enTextEdit_2.toPlainText()
+            text_data = '\n'.join([text_data, textData_jaEn_en])
+            textData_jaEn_ja = self.qt.jaTextEdit_2.toPlainText()
+            text_data = '\n'.join([text_data, textData_jaEn_ja])
 
-        self.action_save_file(tabData)
+        self.action_save_file(text_data)
 
     def action_save_file(self, tab_data):
         file_name = QFileDialog.getSaveFileName(self.qt.centralwidget, caption='Save File', filter="Text (*.txt)",
@@ -280,7 +285,8 @@ class UI_Action:
     def call_speech_once_sdk(self):
         if self.qt.recordButton.isChecked():
             text, lang = api.speech_recognize_once_with_auto_language_detection_from_mic \
-                (speech_recognizer=self.worker.speech_recognize_generator_auto_detect(), ui_callback=self.set_record_default_checked)
+                (speech_recognizer=self.worker.speech_recognize_generator_auto_detect(),
+                 ui_callback=self.set_record_default_checked)
             if text:
                 self.action_set_plaintext(text, lang)
 
@@ -295,14 +301,14 @@ class UI_Action:
             current_index = self.qt.tabWidget.currentIndex()
             if current_index == 0:
                 if self.qt.recordContinualButton.isChecked():
-                    print('english mode')
+                    logger.info('> english mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_english_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,
                          ui_callback=self.set_record_continual_default_checked)
             elif current_index == 1:
                 if self.qt.recordContinualButton.isChecked():
-                    print('japanese mode')
+                    logger.info('> japanese mode')
                     self.speech_recognizer = self.worker.speech_recognize_generator_japanese_detect()
                     self.worker.speech_recognize_continual_from_mic \
                         (speech_recognizer=self.speech_recognizer,
@@ -338,9 +344,12 @@ class PlainTextPayLoad:
         if result:
             time.sleep(0.1)
             self.tab_enJa_en.appendPlainText(timestamp + self.str_separator + result)
+            self.set_scroll_to_bottom(self.tab_enJa_en)
+
             translate_result = api.translation_once_from_text(result, lang)
             time.sleep(0.1)
             self.tab_enJa_ja.appendPlainText(timestamp + self.str_separator + translate_result)
+            self.set_scroll_to_bottom(self.tab_enJa_ja)
 
     def set_tab_ja_en(self, result, lang):
         timestamp = time.strftime("%H:%M:%S")
@@ -349,12 +358,20 @@ class PlainTextPayLoad:
         if result:
             time.sleep(0.1)
             self.tab_jaEn_ja.appendPlainText(timestamp + self.str_separator + result)
+            self.set_scroll_to_bottom(self.tab_jaEn_ja)
+
             translate_result = api.translation_once_from_text(result, lang)
             time.sleep(0.1)
             self.tab_jaEn_en.appendPlainText(timestamp + self.str_separator + translate_result)
+            self.set_scroll_to_bottom(self.tab_jaEn_en)
+
+    def set_scroll_to_bottom(self, target):
+        target.verticalScrollBar().setValue(target.verticalScrollBar().maximum())
 
 
 if __name__ == "__main__":
+    logger = set_logging('voice_translator')
+
     app = QApplication()
     MainWindow = QMainWindow()
     ui = Ui_MainWindow()

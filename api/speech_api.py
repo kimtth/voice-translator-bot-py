@@ -6,9 +6,12 @@
 """
 Speech recognition samples for the Microsoft Cognitive Services Speech SDK
 """
+import logging
+
+import requests
+import uuid
 
 import api.constants as key
-import os, requests, uuid, json
 
 try:
     import azure.cognitiveservices.speech as speechsdk
@@ -22,7 +25,7 @@ except ImportError:
     import sys
     sys.exit(1)
 
-
+logger = logging.getLogger('voice_translator')
 # Set up the subscription info for the Speech Service:
 # Replace with your own subscription key and service region (e.g., "westus").
 speech_key, service_region = key.Const.SPEECH_SUBSCRIPTION_KEY, key.Const.SPEECH_SERVICE_REGION
@@ -39,10 +42,10 @@ def speech_recognize_once_with_auto_language_detection_from_mic(speech_recognize
     # Check the result
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
         auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
-        print("Recognized: {} in language {}".format(result.text, auto_detect_source_language_result.language))
+        logger.info("Recognized: {} in language {}".format(result.text, auto_detect_source_language_result.language))
         return result.text, auto_detect_source_language_result.language
     else:
-        print("Error Log: ", result.reason)
+        logger.info("Error Log: ", result.reason)
         return str(result.reason), ""
 
 
@@ -77,12 +80,14 @@ def translation_once_from_text(source_text, source_lang):
     try:
         request = requests.post(constructed_url, headers=headers, json=body)
         response = request.json()
-        # print(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
+        # logger.info(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
 
         return result_from_translate_response(response)
     except requests.exceptions.RequestException as e:
+        logger.info("The Connection is failed: {}", e)
         return "The Connection is failed: {}", e
     except Exception as e:
+        logger.info(e)
         return e
 
 

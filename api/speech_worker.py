@@ -3,9 +3,13 @@ Signals & Slots
 Signals and slots are used for communication between objects. The signals and slots mechanism is a central feature of Qt.
 https://doc.qt.io/qt-5/signalsandslots.html
 '''
+import logging
+
 from PySide2 import QtCore
+
 import api.constants as key
-import os, requests, uuid, json
+
+logger = logging.getLogger('voice_translator')
 
 try:
     import azure.cognitiveservices.speech as speechsdk
@@ -17,6 +21,7 @@ except ImportError:
     installation instructions.
     ''')
     import sys
+
     sys.exit(1)
 
 
@@ -42,11 +47,11 @@ class SpeechContinuousWorker(QtCore.QObject):
                                                        source_language_config=source_language_config)
 
         return speech_recognizer
-    
+
     def speech_recognize_generator_japanese_detect(self):
         speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.service_region)
-        #source_language_config = speechsdk.languageconfig.SourceLanguageConfig('ja-JP')
-        #speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
+        # source_language_config = speechsdk.languageconfig.SourceLanguageConfig('ja-JP')
+        # speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
         #                                               source_language_config=source_language_config)
 
         auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(
@@ -80,11 +85,10 @@ class SpeechContinuousWorker(QtCore.QObject):
         auto_detect_source_language_result = speechsdk.AutoDetectSourceLanguageResult(result)
         lang = auto_detect_source_language_result.language
 
+        logger.info('Recognized: {} in language {}'.format(recognized_text, lang))
         print('Recognized: {} in language {}'.format(recognized_text, lang))
 
         # PyQT slot and signal
         if recognized_text:
-            result = { 'text': recognized_text, 'lang': lang }
+            result = {'text': recognized_text, 'lang': lang}
             self.text_result_lang.emit(result)  # Emit Signal
-
-

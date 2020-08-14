@@ -1,1 +1,41 @@
-{'EnJaTab': {'en': "19:56:15: File for bankruptcy and plans to close most of its nearly 300 stores in a release Wednesday, Stein Mart CEO hunt Hawkins says changing consumer habits and the pandemic hurt the company financially. Hawkins says going out of business sales will begin immediately.\n19:56:26: That's all for your CNN Evening News briefing. For more on these stories in the latest headlines, visit cnn.com.", 'ja': '19:56:15: 破産を申請し、水曜日のリリースで約300店舗のほとんどを閉鎖する計画、スタインマートCEOハントホーキンスは、消費者の習慣の変化とパンデミックが財政的に会社を傷つけたと言います。ホーキンスは、事業を取り消す営業は直ちに始まると言います。\n19:56:26: それはあなたのCNNイブニングニュースのブリーフィングのためのすべてです。最新の見出しでこれらの物語の詳細については、cnn.comをご覧ください。'}, 'JaEnTab': {'en': '19:56:41: In a thick contact person.\n19:56:48: The remaining 67% of 149 people have so far known the route of infection.\n19:56:54: Among the most concentrated contacts, 17 people watched the game at the dinner.\n19:57:02: Next, there were 15 people infected in the home and 14 in the workplace.\n19:57:04: With this?', 'ja': '19:56:41: 濃厚接触者で。\n19:56:48: 残りのおよそ67%の149人は、これまでのところ感染経路がわかっていないということです。\n19:56:54: 濃厚接触者のうち最も多かったのは会食での観戦で17人。\n19:57:02: 次いで家庭内での感染が15人、職場での感染が14人などとなっています。\n19:57:04: これで？'}}
+[English -> 日本語] 2020/08/13 19:05
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+00:00:00:  防ごう熱中症
+熱中症に警戒をしてください。暑さ指数の実況値・予報値をお伝えしています。
+[日本語 -> English] 2020/08/13 19:05
+00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.
+00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.00:00:00:  Prevent heat stroke
+Be on the lookout for heat stroke. We tell you the actual and forecast values of the heat index.
